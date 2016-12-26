@@ -1,0 +1,211 @@
+= ICU Analysis for Elasticsearch
+Jörg Prante
+Version 1.0
+:sectnums:
+:toc: preamble
+:toclevels: 4
+:!toc-title: Content
+:experimental:
+:description: ICU analysis for Elasticsearch
+:keywords: Elasticsearch, Plugin, ICU analysis
+:icons: font
+
+This ICU analysis plugin adds support for ICU4J 58.2 to Elasticsearch.
+ICU enables extensive support for Unicode. It provides text segmentation,
+normalization, character folding, collation, transliteration, and locale-aware number formatting.
+
+== Text segmentation
+
+Text segmentation for Unicodes is specified in UAX#29 http://unicode.org/reports/tr29/
+
+The specification determines default segmentation boundaries between certain significant text elements:
+grapheme clusters (“user-perceived characters”), words, and sentences.
+
+The default tokenization of Elasticearch follows by default UAX#29.
+
+The ICU tokenzation as implemented by `icu_tokenizer` adds some
+features as described in http://userguide.icu-project.org/boundaryanalysis
+
+- implementation of line break detection UAX#14 http://www.unicode.org/reports/tr14/
+- dictionary support for word boundaries in Thai, Lao, Chinese, and Japanese
+- rule based break iterator (RBBI) for custom boundary detection
+- Myanmar and Khmer is broken into syllables based on custom rules
+- mapping of Han, Hiragana, and Katakana scripts to Japanese
+
+=== Example for CJK
+
+- simple chinese  "我购买了道具和服装。" is tokenized into  "我", "购买", "了", "道具", "和", "服装"
+- simple japanese "それはまだ実験段階にあります" is tokenized into  "それ", "は", "まだ", "実験", "段階", "に", "あり", "ます"
+- korean hangul "안녕하세요 한글입니다" is tokenized into "안녕하세요", "한글입니다"
+
+[source]
+----
+PUT /test
+{
+   "settings": {
+      "index": {
+         "analysis": {
+            "analyzer": {
+               "my_analyzer": {
+                  "type": "custom",
+                  "tokenizer" : "icu_tokenizer"
+               }
+            }
+         }
+      }
+   },
+   "mappings": {
+      "docs": {
+         "properties": {
+            "text": {
+               "type": "text",
+               "analyzer": "my_analyzer"
+            }
+         }
+      }
+   }
+}
+
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "我购买了道具和服装。"
+}
+
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "それはまだ実験段階にあります"
+}
+
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "안녕하세요 한글입니다"
+}
+----
+
+=== Example for mixed script tokenization
+
+In this example, the `icu_tokenizer` shows how it is capable of tokenize mixed scripts of latin,
+cryllic, and thai. Cyricclic/Thai hould be keyword-tokenized.
+
+[source]
+----
+PUT /test
+{
+   "settings": {
+      "index": {
+         "analysis": {
+            "tokenizer": {
+               "my_tokenizer": {
+                  "type": "icu_tokenizer",
+                  "rulefiles": "Cyrl:icu/KeywordTokenizer.rbbi,Thai:icu/KeywordTokenizer.rbbi"
+               }
+            },
+            "analyzer": {
+               "my_analyzer": {
+                  "type": "custom",
+                  "tokenizer": "my_tokenizer"
+               }
+            }
+         }
+      }
+   },
+   "mappings": {
+      "docs": {
+         "properties": {
+            "text": {
+               "type": "text",
+               "analyzer": "my_analyzer"
+            }
+         }
+      }
+   }
+}
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "Some English.  Немного русский.  ข้อความภาษาไทยเล็ก ๆ น้อย ๆ  More English."
+}
+----
+
+=== Example for Myanmar
+
+This example shows how `icu_tokenizer` is able to tokenize myanmar script into syllables instead of words.
+
+"နည်" is tokenized into a single "နည်", it is one token.
+
+"သက်ဝင်လှုပ်ရှားစေပြီး" is tokenized into "သက်", "ဝင်", "လှုပ်", "ရှား", "စေ", "ပြီး".
+
+[source]
+----
+PUT /test
+{
+   "settings": {
+      "index": {
+         "analysis": {
+            "tokenizer": {
+               "my_tokenizer": {
+                  "type": "icu_tokenizer",
+                  "myanmar_as_words": false
+               }
+            },
+            "analyzer": {
+               "my_analyzer": {
+                  "type": "custom",
+                  "tokenizer": "my_tokenizer"
+               }
+            }
+         }
+      }
+   },
+   "mappings": {
+      "docs": {
+         "properties": {
+            "text": {
+               "type": "text",
+               "analyzer": "my_analyzer"
+            }
+         }
+      }
+   }
+}
+
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "နည်"
+}
+
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "သက်ဝင်လှုပ်ရှားစေပြီး"
+}
+----
+
+See also https://issues.apache.org/jira/browse/LUCENE-7393
+
+== Normalization
+
+Normalization allows for easier sorting and searching of text. Text can appear in different forms,
+and the question is to canonicalize these forms so same texts can be recognized as being the same.
+
+Normalization is used to convert text to a unique, equivalent form. The ICU normalizer token filter
+can normalize equivalent strings to one particular sequence, such as normalizing composite character sequences
+into pre-composed characters.
+
+
+
+
+== Folding
+
+== Collation
+
+== Transliteration
+
+== Number formatting
+
+
+
