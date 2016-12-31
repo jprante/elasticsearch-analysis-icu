@@ -12,7 +12,6 @@ import org.xbib.elasticsearch.index.analysis.icu.IcuCollationKeyAnalyzerProvider
 import org.xbib.elasticsearch.index.analysis.icu.IcuCollationTokenizerFactory;
 import org.xbib.elasticsearch.index.analysis.icu.IcuFoldingCharFilterFactory;
 import org.xbib.elasticsearch.index.analysis.icu.IcuFoldingTokenFilterFactory;
-import org.xbib.elasticsearch.index.analysis.icu.IcuMeasureFormatTokenFilterFactory;
 import org.xbib.elasticsearch.index.analysis.icu.IcuNormalizerCharFilterFactory;
 import org.xbib.elasticsearch.index.analysis.icu.IcuNormalizerTokenFilterFactory;
 import org.xbib.elasticsearch.index.analysis.icu.IcuNumberFormatTokenFilterFactory;
@@ -42,14 +41,13 @@ public class IcuPlugin extends Plugin implements AnalysisPlugin {
         extra.put("icu_folding", IcuFoldingTokenFilterFactory::new);
         extra.put("icu_transform", IcuTransformTokenFilterFactory::new);
         extra.put("icu_numberformat", IcuNumberFormatTokenFilterFactory::new);
-        extra.put("icu_measureformat", IcuMeasureFormatTokenFilterFactory::new);
         return extra;
     }
 
     @Override
     public Map<String, AnalysisModule.AnalysisProvider<TokenizerFactory>> getTokenizers() {
         Map<String, AnalysisModule.AnalysisProvider<TokenizerFactory>> extra = new LinkedHashMap<>();
-        extra.put("icu_collation_tokenizer", IcuCollationTokenizerFactory::new);
+        extra.put("icu_collation", IcuCollationTokenizerFactory::new);
         extra.put("icu_tokenizer", IcuTokenizerFactory::new);
         return extra;
     }

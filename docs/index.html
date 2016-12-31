@@ -123,14 +123,36 @@ table.CodeRay td.code>pre{padding:0}
 <ul class="sectlevel2">
 <li><a href="#example-for-cjk">1.1. Example for CJK</a></li>
 <li><a href="#example-for-mixed-script-tokenization">1.2. Example for mixed script tokenization</a></li>
-<li><a href="#example-for-myanmar-khmer">1.3. Example for Myanmar/Khmer</a></li>
+<li><a href="#example-for-myanmar">1.3. Example for Myanmar</a></li>
 </ul>
 </li>
-<li><a href="#normalization">2. Normalization</a></li>
-<li><a href="#character-folding">3. Character folding</a></li>
-<li><a href="#collation">4. Collation</a></li>
-<li><a href="#transliteration">5. Transliteration</a></li>
+<li><a href="#normalization">2. Normalization</a>
+<ul class="sectlevel2">
+<li><a href="#example-for-char-filter-normalization">2.1. Example for char filter normalization</a></li>
+</ul>
+</li>
+<li><a href="#character-folding">3. Character Folding</a>
+<ul class="sectlevel2">
+<li><a href="#example-for-folding">3.1. Example for folding</a></li>
+</ul>
+</li>
+<li><a href="#collation">4. Collation</a>
+<ul class="sectlevel2">
+<li><a href="#strength-levels">4.1. Strength levels</a></li>
+<li><a href="#case-ordering">4.2. Case Ordering</a>
+<ul class="sectlevel3">
+<li><a href="#casefirst">4.2.1. CaseFirst</a></li>
+<li><a href="#caselevel">4.2.2. CaseLevel</a></li>
+</ul>
+</li>
+<li><a href="#script-reordering">4.3. Script Reordering</a></li>
+<li><a href="#implementation">4.4. Implementation</a></li>
+<li><a href="#example-for-german-phone-book-collation-ordering">4.5. Example for german phone book collation ordering</a></li>
+</ul>
+</li>
+<li><a href="#transform">5. Transform</a></li>
 <li><a href="#number-formatting">6. Number formatting</a></li>
+<li><a href="#credits">7. Credits</a></li>
 </ul>
 </div>
 </div>
@@ -138,8 +160,19 @@ table.CodeRay td.code>pre{padding:0}
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This ICU analysis plugin adds support for ICU4J 58.2 to Elasticsearch.
-ICU enables extensive support for Unicode. It provides text segmentation,
+<p>This International Components for Unicode (ICU) analysis plugin adds
+support for ICU 58.2 to Elasticsearch.</p>
+</div>
+<div class="paragraph">
+<p>ICU 58.2 supports Unicode 9.0 and CLDR 30.0.2.</p>
+</div>
+<div class="paragraph">
+<p>It is a drop-in replacement for the mainline Elasticsearch ICU plugin and extends
+it by new features and options. There is no dependency on Lucene ICU, the
+functionality is included in this plugin as well.</p>
+</div>
+<div class="paragraph">
+<p>ICU enables extensive support for Unicode. It provides text segmentation,
 normalization, character folding, collation, transliteration, and locale-aware number formatting.</p>
 </div>
 </div>
@@ -291,9 +324,12 @@ POST /test/_analyze
 </div>
 </div>
 <div class="sect2">
-<h3 id="example-for-myanmar-khmer">1.3. Example for Myanmar/Khmer</h3>
+<h3 id="example-for-myanmar">1.3. Example for Myanmar</h3>
 <div class="paragraph">
 <p>This example shows how <code>icu_tokenizer</code> is able to tokenize myanmar script into syllables instead of words.</p>
+</div>
+<div class="paragraph">
+<p>"နည်" is tokenized into a single "နည်", it is one token.</p>
 </div>
 <div class="paragraph">
 <p>"သက်ဝင်လှုပ်ရှားစေပြီး" is tokenized into "သက်", "ဝင်", "လှုပ်", "ရှား", "စေ", "ပြီး".</p>
@@ -331,6 +367,13 @@ POST /test/_analyze
       }
    }
 }
+
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "နည်"
+}
+
 POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
@@ -338,43 +381,1194 @@ POST /test/_analyze
 }</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>See also <a href="https://issues.apache.org/jira/browse/LUCENE-7393" class="bare">https://issues.apache.org/jira/browse/LUCENE-7393</a></p>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="normalization">2. Normalization</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Normalization allows for easier sorting and searching of text. Text can appear in different forms,
+and the question is to canonicalize these forms so same texts can be recognized as being the same.</p>
+</div>
+<div class="paragraph">
+<p>Normalization is used to convert text to a unique, equivalent form. The ICU normalizer token filter
+can normalize equivalent strings to one particular sequence, such as normalizing composite character sequences
+into pre-composed characters.</p>
+</div>
+<div class="sect2">
+<h3 id="example-for-char-filter-normalization">2.1. Example for char filter normalization</h3>
+<div class="paragraph">
+<p>This example shows how <code>icu_normalizer</code> transforms "Ruß" into "russ".</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code>PUT /test
+{
+   "settings": {
+      "index": {
+         "analysis": {
+            "analyzer": {
+               "my_analyzer": {
+                  "type": "custom",
+                  "char_filter" : "icu_normalizer",
+                  "tokenizer" : "icu_tokenizer"
+               }
+            }
+         }
+      }
+   },
+   "mappings": {
+      "docs": {
+         "properties": {
+            "text": {
+               "type": "text",
+               "analyzer": "my_analyzer"
+            }
+         }
+      }
+   }
+}
 
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "Ruß"
+}</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="character-folding">3. Character folding</h2>
+<h2 id="character-folding">3. Character Folding</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Character folding operations are most often used to temporarily ignore certain distinctions between similar characters.
+For example, they are useful for "fuzzy" or "loose" searches.</p>
+</div>
+<div class="paragraph">
+<p>Repeatedly applying the same folding does not change the result, a property called idempotency.</p>
+</div>
+<div class="paragraph">
+<p>The Unicode draft report UTR-30 on character folding was withdrawn because of many edge cases where no good
+solution exist. See <a href="http://www.unicode.org/reports/tr30/tr30-4.html" class="bare">http://www.unicode.org/reports/tr30/tr30-4.html</a></p>
+</div>
+<div class="paragraph">
+<p>Normalization and character folding are defined as separate and independent operations,
+but case folding often occurs together with other foldings in search term folding.
+NFC or NFD are not in the primary focus of case folding operations.</p>
+</div>
+<div class="paragraph">
+<p>The implemented char filter / token filter applies the following foldings from the report to unicode text:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Accent removal</p>
+</li>
+<li>
+<p>Case folding</p>
+</li>
+<li>
+<p>Canonical duplicates folding</p>
+</li>
+<li>
+<p>Dashes folding</p>
+</li>
+<li>
+<p>Diacritic removal (including stroke, hook, descender)</p>
+</li>
+<li>
+<p>Greek letterforms folding</p>
+</li>
+<li>
+<p>Han Radical folding</p>
+</li>
+<li>
+<p>Hebrew Alternates folding</p>
+</li>
+<li>
+<p>Jamo folding</p>
+</li>
+<li>
+<p>Letterforms folding</p>
+</li>
+<li>
+<p>Math symbol folding</p>
+</li>
+<li>
+<p>Multigraph Expansions (All)</p>
+</li>
+<li>
+<p>Native digit folding</p>
+</li>
+<li>
+<p>No-break folding</p>
+</li>
+<li>
+<p>Overline folding</p>
+</li>
+<li>
+<p>Positional forms folding</p>
+</li>
+<li>
+<p>Small forms folding</p>
+</li>
+<li>
+<p>Space folding</p>
+</li>
+<li>
+<p>Spacing Accents folding</p>
+</li>
+<li>
+<p>Subscript folding</p>
+</li>
+<li>
+<p>Superscript folding</p>
+</li>
+<li>
+<p>Suzhou Numeral folding</p>
+</li>
+<li>
+<p>Symbol folding</p>
+</li>
+<li>
+<p>Underline folding</p>
+</li>
+<li>
+<p>Vertical forms folding</p>
+</li>
+<li>
+<p>Width folding</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Additionally, Default Ignorables are removed, and text is normalized to NFKC.
+All foldings, case folding, and normalization mappings are applied recursively
+to ensure a fully folded and normalized result.</p>
+</div>
+<div class="sect2">
+<h3 id="example-for-folding">3.1. Example for folding</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code>PUT /test
+{
+   "settings": {
+      "index": {
+         "analysis": {
+            "analyzer": {
+               "my_analyzer": {
+                  "type": "custom",
+                  "char_filter" : "icu_folding",
+                  "tokenizer" : "icu_tokenizer"
+               }
+            }
+         }
+      }
+   },
+   "mappings": {
+      "docs": {
+         "properties": {
+            "text": {
+               "type": "text",
+               "analyzer": "my_analyzer"
+            }
+         }
+      }
+   }
+}
 
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "résumé"
+}
+
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "\u00fc"
+}
+
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "\u0075\u0308"
+}</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="collation">4. Collation</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Collation stands for the process of determining the sorting order of strings that are represented by characters.
+The collation process is a key function in computer systems; whenever a list of entries is presented to users,
+they are likely to want it in a sorted order so that they can easily and reliably find entries.</p>
+</div>
+<div class="paragraph">
+<p>Unicode provides collation rules in the Unicode Collation Algorithm (UCA), see
+UTR#10 <a href="http://www.unicode.org/reports/tr10/" class="bare">http://www.unicode.org/reports/tr10/</a> The standard collation order for Unicode is known as DUCET/CLDR.</p>
+</div>
+<div class="paragraph">
+<p>ICU Collation is provided by two main categories of APIs:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>String comparison. Most commonly used, the result of comparing two strings (greater than, equal or less than).
+This is used as a comparator when sorting lists, building tree maps, etc.</p>
+</li>
+<li>
+<p>Sort key generation. Used when a very large set of strings are compared/sorted repeatedly. A zero-terminated array
+of bytes per string known as a sort key is returned. The keys can be compared directly using
+<code>strcmp</code> or <code>memcmp</code> standard library functions, saving repeated lookup and computation of each string&#8217;s
+collation properties. For example, database applications use index tables of sort keys to index strings quickly.
+Note, however, that this only improves performance for large numbers of strings because sorting
+via the comparison functions is very fast.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="strength-levels">4.1. Strength levels</h3>
+<div class="paragraph">
+<p>Following the Unicode Consortium&#8217;s specifications for the Unicode Collation Algorithm (UCA), there are five
+different levels of strength used in comparisons.</p>
+</div>
+<div class="hdlist">
+<table>
+<tr>
+<td class="hdlist1">
+PRIMARY
+</td>
+<td class="hdlist2">
+<p>Typically, this is used to denote differences between base characters (for example, "a" &lt; "b").
+It is the strongest difference. For example, dictionaries are divided into different sections by base character.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+SECONDARY
+</td>
+<td class="hdlist2">
+<p>Accents in the characters are considered secondary differences (for example, "as" &lt; "às" &lt; "at").
+Other differences between letters can also be considered secondary differences, depending on the language.
+A secondary difference is ignored when there is a primary difference anywhere in the strings.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+TERTIARY
+</td>
+<td class="hdlist2">
+<p>Upper and lower case differences in characters are distinguished at tertiary strength
+(for example, "ao" &lt; "Ao" &lt; "aò"). In addition, a variant of a letter differs from the base form on the
+tertiary strength (such as "A" and "Ⓐ"). Another example is the difference between large and small Kana.
+A tertiary difference is ignored when there is a primary or secondary difference anywhere in the strings.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+QUATERNARY
+</td>
+<td class="hdlist2">
+<p>When punctuation is ignored (see Ignoring Punctuations in the user guide) at PRIMARY to TERTIARY strength,
+an additional strength level can be used to distinguish words with and without punctuation
+(for example, "ab" &lt; "a-b" &lt; "aB"). This difference is ignored when there is a PRIMARY, SECONDARY or TERTIARY
+difference. The QUATERNARY strength should only be used if ignoring punctuation is required.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+IDENTICAL
+</td>
+<td class="hdlist2">
+<p>When all other strengths are equal, the IDENTICAL strength is used as a tiebreaker.
+The Unicode code point values of the NFD form of each string are compared, just in case there is no difference.
+For example, Hebrew cantellation marks are only distinguished at this strength.
+This strength should be used sparingly, as only code point value differences between two strings is an extremely
+rare occurrence. Using this strength substantially decreases the performance for both comparison and
+collation key generation APIs. This strength also increases the size of the collation key.</p>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="case-ordering">4.2. Case Ordering</h3>
+<div class="paragraph">
+<p>The tertiary level is used to distinguish text by case.</p>
+</div>
+<div class="paragraph">
+<p>Some applications prefer to emphasize case differences so that words starting with the same case sort together.
+Some Japanese applications require the difference between small and large Kana be emphasized
+over other tertiary differences.</p>
+</div>
+<div class="paragraph">
+<p>The UCA does not provide means to separate out either case or Kana differences from the remaining tertiary differences.
+However, the ICU Collation Service has two options that help in customize case and/or Kana differences.
+Both options are turned off by default.</p>
+</div>
+<div class="sect3">
+<h4 id="casefirst">4.2.1. CaseFirst</h4>
+<div class="paragraph">
+<p>The Case-first option makes case the most significant part of the tertiary level.
+Primary and secondary levels are unaffected. With this option, words starting with the same case sort together.
+The Case-first option can be set to make either lowercase sort before uppercase or uppercase sort before lowercase.</p>
+</div>
+<div class="paragraph">
+<p>Note: The case-first option does not constitute a separate level; it is simply a reordering of the tertiary level.</p>
+</div>
+<div class="paragraph">
+<p>ICU makes use of the following three case categories for sorting</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>uppercase: "ABC"</p>
+</li>
+<li>
+<p>mixed case: "Abc", "aBc"</p>
+</li>
+<li>
+<p>normal (lowercase or no case): "abc", "123"</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Mixed case is always sorted between uppercase and normal case when the "case-first" option is set.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="caselevel">4.2.2. CaseLevel</h4>
+<div class="paragraph">
+<p>The Case Level option makes a separate level for case differences.
+This is an extra level positioned between secondary and tertiary.
+The case level is used in Japanese to make the difference between small and large Kana more important
+than the other tertiary differences. It also can be used to ignore other tertiary differences,
+or even secondary differences. This is especially useful in matching.
+For example, if the strength is set to primary only (level-1) and the case level is turned on,
+the comparison ignores accents and tertiary differences except for case.
+The contents of the case level are affected by the case-first option.</p>
+</div>
+<div class="paragraph">
+<p>The case level is independent from the strength of comparison.
+It is possible to have a collator set to primary strength with the case level turned on.
+This provides for comparison that takes into account the case differences,
+while at the same time ignoring accents and tertiary differences other than case.
+This may be used in searching.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="script-reordering">4.3. Script Reordering</h3>
+<div class="paragraph">
+<p>Script reordering allows scripts and some other groups of characters to be moved relative to each other.
+This reordering is done on top of the DUCET/CLDR standard collation order.
+Reordering can specify groups to be placed at the start and/or the end of the collation order.</p>
+</div>
+<div class="paragraph">
+<p>By default, reordering codes specified for the start of the order are placed in the order given after
+several special non-script blocks. These special groups of characters are space, punctuation, symbol,
+currency, and digit. Script groups can be intermingled with these special non-script groups
+if those special groups are explicitly specified in the reordering.</p>
+</div>
+<div class="paragraph">
+<p>The special code others stands for any script that is not explicitly mentioned in the list.
+Anything that is after others will go at the very end of the list in the order given.
+For example, [Grek, others, Latn] will result in an ordering that puts all scripts
+other than Greek and Latin between them.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="implementation">4.4. Implementation</h3>
+<div class="paragraph">
+<p>Collation rules in Elasticsearch are implemented by the analyzer <code>icu_collate</code>.</p>
+</div>
+<div class="paragraph">
+<p>The analyzer can be set up with</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>a system collator associated with a Locale or a language ID</p>
+</li>
+<li>
+<p>a tailored rule set (conforms to ISO 14651)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The following options are available for creating a system collator:</p>
+</div>
+<div class="hdlist">
+<table>
+<tr>
+<td class="hdlist1">
+locale
+</td>
+<td class="hdlist2">
+<p>a RFC 3066 locale ID</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+language
+</td>
+<td class="hdlist2">
+<p>an RFC 3066  language ID, if locale ID is not given</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+country
+</td>
+<td class="hdlist2">
+<p>an RFC 3066 country ID, if language ID is not specific enough</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+strength
+</td>
+<td class="hdlist2">
+<p><code>primary</code>, <code>secondary</code>, <code>tertiary</code>, <code>quaternary</code>, or <code>identical</code></p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+decomposition
+</td>
+<td class="hdlist2">
+<p><code>no</code>, or <code>canonical</code>.  If the canonical decomposition mode is set, the Collator handles
+un-normalized text properly, producing the same results as if the text were normalized in NFD.
+If canonical decomposition is turned off, it is the user&#8217;s responsibility to ensure that all text is already
+in the appropriate form before performing a comparison or before getting a CollationKey.</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following options are available when creating a rule set based collator:</p>
+</div>
+<div class="hdlist">
+<table>
+<tr>
+<td class="hdlist1">
+rules
+</td>
+<td class="hdlist2">
+<p>name of an UTF-8 text file containing rules supported by RuleBasedCollator (mandatory)</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+strength
+</td>
+<td class="hdlist2">
+<p><code>primary</code>, <code>secondary</code>, <code>tertiary</code>, <code>quaternary</code>, or <code>identical</code> (optional)</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+decomposition
+</td>
+<td class="hdlist2">
+<p><code>no</code> or <code>canonical</code> (optional)</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Other, more advanced options are</p>
+</div>
+<div class="hdlist">
+<table>
+<tr>
+<td class="hdlist1">
+alternate
+</td>
+<td class="hdlist2">
+<p><code>shifted</code> or <code>non-ignorable</code>. Can be used to ignore punctuation/whitespace.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+caseLevel
+</td>
+<td class="hdlist2">
+<p><code>true</code> or <code>false</code>. Useful with primary strength to ignore accents but not case.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+caseFirst
+</td>
+<td class="hdlist2">
+<p><code>lower</code> or <code>upper</code>. Useful to control which is sorted first when case is not ignored.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+numeric
+</td>
+<td class="hdlist2">
+<p><code>true</code> or <code>false</code>. Digits are sorted according to numeric value, e.g. <code>foobar-9</code> sorts before <code>foobar-10</code></p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+variableTop
+</td>
+<td class="hdlist2">
+<p>single character or contraction. Controls what the variable is for 'alternate'. Default is <code>Collator.ReorderCodes.DEFAULT</code> (-1)</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+reorder
+</td>
+<td class="hdlist2">
+<p>a sequence of strings of [ <code>currency</code>, <code>default</code>, <code>digit</code>, <code>first</code>, <code>none</code>, <code>others</code>, <code>punctuation</code>, <code>space</code>, <code>symbol</code>]
+for non-script group reordering</p>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="example-for-german-phone-book-collation-ordering">4.5. Example for german phone book collation ordering</h3>
+<div class="paragraph">
+<p>This example shows how the <code>icu_collation</code> can be used to sort german family names in
+the german phone book order.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code>PUT /test
+{
+   "settings": {
+      "index": {
+         "analysis": {
+            "analyzer": {
+               "my_analyzer": {
+                  "type": "icu_collation",
+                  "locale": "de@collation=phonebook",
+                  "strength": "primary"
+               }
+            }
+         }
+      }
+   },
+   "mappings": {
+      "docs": {
+         "properties": {
+            "text": {
+               "type": "text",
+               "fielddata" : true,
+               "analyzer": "my_analyzer"
+            }
+         }
+      }
+   }
+}
 
+PUT /test/docs/1
+{
+    "text" : "Göbel"
+}
+
+PUT /test/docs/2
+{
+    "text" : "Goethe"
+}
+
+PUT /test/docs/3
+{
+    "text" : "Goldmann"
+}
+
+PUT /test/docs/4
+{
+    "text" :  "Göthe"
+}
+
+PUT /test/docs/5
+{
+    "text" :  "Götz"
+}
+
+POST /test/docs/_search
+{
+    "query": {
+        "match_all": {
+        }
+    },
+    "sort" : {
+        "text" : { "order" : "asc" }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The sorted result is</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code>{
+   "took": 57,
+   "timed_out": false,
+   "_shards": {
+      "total": 5,
+      "successful": 5,
+      "failed": 0
+   },
+   "hits": {
+      "total": 5,
+      "max_score": null,
+      "hits": [
+         {
+            "_index": "test",
+            "_type": "docs",
+            "_id": "1",
+            "_score": null,
+            "_source": {
+               "text": "Göbel"
+            },
+            "sort": [
+               "5E1+1?\u0000"
+            ]
+         },
+         {
+            "_index": "test",
+            "_type": "docs",
+            "_id": "2",
+            "_score": null,
+            "_source": {
+               "text": "Goethe"
+            },
+            "sort": [
+               "5E1O71\u0000"
+            ]
+         },
+         {
+            "_index": "test",
+            "_type": "docs",
+            "_id": "4",
+            "_score": null,
+            "_source": {
+               "text": "Göthe"
+            },
+            "sort": [
+               "5E1O71\u0000"
+            ]
+         },
+         {
+            "_index": "test",
+            "_type": "docs",
+            "_id": "5",
+            "_score": null,
+            "_source": {
+               "text": "Götz"
+            },
+            "sort": [
+               "5E1O[\u0000"
+            ]
+         },
+         {
+            "_index": "test",
+            "_type": "docs",
+            "_id": "3",
+            "_score": null,
+            "_source": {
+               "text": "Goldmann"
+            },
+            "sort": [
+               "5E?/A)CC\u0000"
+            ]
+         }
+      ]
+   }
+}</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="transliteration">5. Transliteration</h2>
+<h2 id="transform">5. Transform</h2>
 <div class="sectionbody">
-
+<div class="paragraph">
+<p>Transliteration is part of the ICU transforms feature. Transforms are used to process Unicode text
+in many different ways. They include case mapping, normalization,
+transliteration and bidirectional text handling.</p>
+</div>
+<div class="paragraph">
+<p>Case mapping is used to handle mappings of upper- and lower-case characters from one language to another language,
+and writing systems that use letters of the same alphabet to handle title case mappings that are particular
+to some class. They provide for certain language-specific mappings as well.</p>
+</div>
+<div class="paragraph">
+<p>Normalization is used to convert text to a unique, equivalent form. Systems can normalize Unicode-encoded text
+to one particular sequence, such as a normalizing composite character sequences into precomposed characters.</p>
+</div>
+<div class="paragraph">
+<p>Transliteration provide a general-purpose package for processing Unicode text. They are a powerful and flexible
+mechanism for handling a variety of different tasks, including:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Uppercase, Lowercase, Titlecase, Full/Halfwidth conversions</p>
+</li>
+<li>
+<p>Normalization</p>
+</li>
+<li>
+<p>Hex and Character Name conversions</p>
+</li>
+<li>
+<p>Script to Script conversion</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The Bidirectional Algorithm was developed to specify the direction of text in a text flow.</p>
+</div>
+<div class="paragraph">
+<p>The <code>icu_transform</code>  token filter can be configured as follows</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code>PUT /test
+{
+   "settings": {
+      "index": {
+         "analysis": {
+            "filter": {
+               "my_icu_transformer_ch": {
+                  "type": "icu_transform",
+                  "id": "Traditional-Simplified"
+               },
+               "my_icu_transformer_han": {
+                  "type": "icu_transform",
+                  "id": "Han-Latin"
+               },
+               "my_icu_transformer_katakana": {
+                  "type": "icu_transform",
+                  "id": "Katakana-Hiragana"
+               },
+               "my_icu_transformer_cyr": {
+                  "type": "icu_transform",
+                  "id": "Cyrillic-Latin"
+               },
+               "my_icu_transformer_any_latin": {
+                  "type": "icu_transform",
+                  "id": "Any-Latin"
+               },
+               "my_icu_transformer_nfd": {
+                  "type": "icu_transform",
+                  "id": "NFD; [:Nonspacing Mark:] Remove"
+               },
+               "my_icu_transformer_rules": {
+                  "type": "icu_transform",
+                  "id": "test",
+                  "dir": "forward",
+                  "rules": "a &gt; b; b &gt; c;"
+               }
+            },
+            "analyzer": {
+               "my_icu_ch": {
+                  "type": "custom",
+                  "tokenizer": "icu_tokenizer",
+                  "filter": [
+                     "my_icu_transformer_ch"
+                  ]
+               },
+               "my_icu_han": {
+                  "type": "custom",
+                  "tokenizer": "icu_tokenizer",
+                  "filter": [
+                     "my_icu_transformer_han"
+                  ]
+               },
+               "my_icu_katakana": {
+                  "type": "custom",
+                  "tokenizer": "icu_tokenizer",
+                  "filter": [
+                     "my_icu_transformer_katakana"
+                  ]
+               },
+               "my_icu_cyr": {
+                  "type": "custom",
+                  "tokenizer": "icu_tokenizer",
+                  "filter": [
+                     "my_icu_transformer_cyr"
+                  ]
+               },
+               "my_icu_any_latin": {
+                  "type": "custom",
+                  "tokenizer": "icu_tokenizer",
+                  "filter": [
+                     "my_icu_transformer_any_latin"
+                  ]
+               },
+               "my_icu_nfd": {
+                  "type": "custom",
+                  "tokenizer": "icu_tokenizer",
+                  "filter": [
+                     "my_icu_transformer_nfd"
+                  ]
+               },
+               "my_icu_rules": {
+                  "type": "custom",
+                  "tokenizer": "icu_tokenizer",
+                  "filter": [
+                     "my_icu_transformer_rules"
+                  ]
+               }
+            }
+         }
+      }
+   }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The analyzer <code>my_icu_ch</code> can transform traditional to simplified chinese.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
+{
+    "analyzer" : "my_icu_ch",
+    "text" : "簡化字"
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "简化",
+         "start_offset": 0,
+         "end_offset": 2,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 0
+      },
+      {
+         "token": "字",
+         "start_offset": 2,
+         "end_offset": 3,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 1
+      }
+   ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The analyzer <code>my_icu_han</code> can transform Han to latin script.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
+{
+    "analyzer" : "my_icu_han",
+    "text" : "中国"
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "zhōng guó",
+         "start_offset": 0,
+         "end_offset": 2,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 0
+      }
+   ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The analyzer <code>my_icu_katakana</code> can transform katakana to hiragana script.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
+{
+    "analyzer" : "my_icu_katakana",
+    "text" : "ヒラガナ"
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "ひらがな",
+         "start_offset": 0,
+         "end_offset": 4,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 0
+      }
+   ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The analyzer <code>my_icu_cyr</code> can transform cyrillic to latin script.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
+{
+    "analyzer" : "my_icu_cyr",
+    "text" : "Российская Федерация"
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "Rossijskaâ",
+         "start_offset": 0,
+         "end_offset": 10,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 0
+      },
+      {
+         "token": "Federaciâ",
+         "start_offset": 11,
+         "end_offset": 20,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 1
+      }
+   ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The analyzer <code>my_icu_any_latin</code> can transform any script to latin script.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
+{
+    "analyzer" : "my_icu_any_latin",
+    "text" : "Αλφαβητικός Κατάλογος"
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "Alphabētikós",
+         "start_offset": 0,
+         "end_offset": 11,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 0
+      },
+      {
+         "token": "Katálogos",
+         "start_offset": 12,
+         "end_offset": 21,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 1
+      }
+   ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The analyzer <code>my_icu_nfd</code> can transform a script to canonical decomposed form.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
+{
+    "analyzer" : "my_icu_nfd",
+    "text" : "Alphabētikós Katálogos"
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "Alphabetikos",
+         "start_offset": 0,
+         "end_offset": 12,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 0
+      },
+      {
+         "token": "Katalogos",
+         "start_offset": 13,
+         "end_offset": 22,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 1
+      }
+   ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The analyzer <code>my_icu_rules</code> can transform Unicode text by rules.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
+{
+    "analyzer" : "my_icu_tokenizer_rules",
+    "text" : "abacadaba"
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "bcbcbdbcb",
+         "start_offset": 0,
+         "end_offset": 9,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 0
+      }
+   ]
+}</pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="number-formatting">6. Number formatting</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Number formatting is part of message formatting. Messages are user-visible strings,
+often with variable elements like names, numbers and dates.</p>
+</div>
+<div class="paragraph">
+<p>Number formatting is useful for indexing the textual information of numbers.
+It allows synonym search on numbers when it is not ensured that numbers are encoded
+as digits or text. Example: "A dollar is 100 cents" and "A dollar is onehundred cents".</p>
+</div>
+<div class="paragraph">
+<p>The setting <code>lenient</code> determines the effort the parser should undertake. If true, the parser can recognize
+more numbers, but is extremely slow.</p>
+</div>
+<div class="paragraph">
+<p>Here is an example of the <code>spellout</code> number format feature. Both queries will match both documents.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code>PUT /test
+{
+   "settings": {
+      "index": {
+         "analysis": {
+            "filter": {
+               "spellout_en": {
+                  "type": "icu_numberformat",
+                  "locale": "en_US",
+                  "format": "spellout",
+                  "lenient": true
+               }
+            },
+            "analyzer": {
+               "my_analyzer": {
+                  "type": "custom",
+                  "tokenizer": "icu_tokenizer",
+                  "filter": "spellout_en"
+               }
+            }
+         }
+      }
+   },
+   "mappings": {
+      "docs": {
+         "properties": {
+            "text": {
+               "type": "text",
+               "fielddata": true,
+               "analyzer": "my_analyzer"
+            }
+         }
+      }
+   }
+}
 
+PUT /test/docs/1
+{
+    "text" : "A dollar is 100 cents"
+}
+
+PUT /test/docs/2
+{
+    "text" : "A dollar is onehundred cents"
+}
+
+POST /test/docs/_search
+{
+    "query": {
+        "match": {
+            "text" : "100"
+        }
+    }
+}
+POST /test/docs/_search
+{
+    "query": {
+        "match": {
+            "text" : "onehundred"
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="credits">7. Credits</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Many parts of this documenation are taken from</p>
+</div>
+<div class="paragraph">
+<p><a href="http://userguide.icu-project.org/" class="bare">http://userguide.icu-project.org/</a>
+Copyright (c) 2000 - 2009 IBM and Others.</p>
+</div>
+<div class="paragraph">
+<p><a href="http://icu-project.org/apiref/icu4j/" class="bare">http://icu-project.org/apiref/icu4j/</a>
+Copyright (c) 2016 IBM Corporation and others.</p>
+</div>
+<div class="paragraph">
+<p>Many examples are take from Lucene ICU</p>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-12-26 19:55:23 MEZ
+Last updated 2016-12-29 16:38:46 MEZ
 </div>
 </div>
 </body>
