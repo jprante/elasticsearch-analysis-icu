@@ -1,15 +1,19 @@
 = ICU analysis for Elasticsearch
 
 image:https://api.travis-ci.org/jprante/elasticsearch-analysis-icu.svg[title="Build status", link="https://travis-ci.org/jprante/elasticsearch-analysis-icu/"]
-image:https://sonarqube.com/api/badges/gate?key=org.xbib.elasticsearch.plugin:elasticsearch-analysis-icu[title="Coverage", link="https://sonarqube.com/dashboard/index?id=org.xbib.elasticsearch.plugin%3Aelasticsearch-analysis-icu"]
-image:https://sonarqube.com/api/badges/measure?key=org.xbib.elasticsearch.plugin:elasticsearch-analysis-icu&metric=sqale_debt_ratio[title="Technical debt ration", link="https://sonarqube.com/dashboard/index?id=org.xbib.elasticsearch.plugin%3Aelasticsearch-analysis-icu"]
 image:https://maven-badges.herokuapp.com/maven-central/org.jprante/elasticsearch-analysis-icu/badge.svg[title="Maven Central", link="http://search.maven.org/#search%7Cga%7C1%7Cxbib%20elasticsearch-analysis-icu"]
 image:https://img.shields.io/badge/License-Apache%202.0-blue.svg[title="Apache License 2.0", link="https://opensource.org/licenses/Apache-2.0"]
 image:https://img.shields.io/twitter/url/https/twitter.com/xbib.svg?style=social&label=Follow%20%40xbib[title="Twitter", link="https://twitter.com/xbib"]
 
+image:https://sonarqube.com/api/badges/gate?key=org.xbib.elasticsearch.plugin:elasticsearch-analysis-icu[title="Quality Gate", link="https://sonarqube.com/dashboard/index?id=org.xbib.elasticsearch.plugin%3Aelasticsearch-analysis-icu"]
+image:https://sonarqube.com/api/badges/measure?key=org.xbib.elasticsearch.plugin:elasticsearch-analysis-icu&metric=coverage[title="Coverage", link="https://sonarqube.com/dashboard/index?id=org.xbib.elasticsearch.plugin%3Aelasticsearch-analysis-icu"]
+image:https://sonarqube.com/api/badges/measure?key=org.xbib.elasticsearch.plugin:elasticsearch-analysis-icu&metric=vulnerabilities[title="Vulnerabilities", link="https://sonarqube.com/dashboard/index?id=org.xbib.elasticsearch.plugin%3Aelasticsearch-analysis-icu"]
+image:https://sonarqube.com/api/badges/measure?key=org.xbib.elasticsearch.plugin:elasticsearch-analysis-icu&metric=bugs[title="Bugs", link="https://sonarqube.com/dashboard/index?id=org.xbib.elasticsearch.plugin%3Aelasticsearch-analysis-icu"]
+image:https://sonarqube.com/api/badges/measure?key=org.xbib.elasticsearch.plugin:elasticsearch-analysis-icu&metric=sqale_debt_ratio[title="Technical debt ratio", link="https://sonarqube.com/dashboard/index?id=org.xbib.elasticsearch.plugin%3Aelasticsearch-analysis-icu"]
+
 image:https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif[title="PayPal", link="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=GVHFQYZ9WZ8HG"]
 
-This ICU plugin for Elasticsearch is a drop-in replacement for the mainstream ICU plaugin for Elasticsearch.
+This ICU plugin for Elasticsearch is a drop-in replacement for the mainstream ICU plugin for Elasticsearch.
 
 Notable differences to the mainstream ICU plugin are:
 
