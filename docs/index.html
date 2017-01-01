@@ -254,25 +254,188 @@ features as described in <a href="http://userguide.icu-project.org/boundaryanaly
          }
       }
    }
-}
-
-POST /test/_analyze
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Simple chinese analysis</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "我购买了道具和服装。"
-}
-
-POST /test/_analyze
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Result</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "我",
+         "start_offset": 0,
+         "end_offset": 1,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 0
+      },
+      {
+         "token": "购买",
+         "start_offset": 1,
+         "end_offset": 3,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 1
+      },
+      {
+         "token": "了",
+         "start_offset": 3,
+         "end_offset": 4,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 2
+      },
+      {
+         "token": "道具",
+         "start_offset": 4,
+         "end_offset": 6,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 3
+      },
+      {
+         "token": "和",
+         "start_offset": 6,
+         "end_offset": 7,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 4
+      },
+      {
+         "token": "服装",
+         "start_offset": 7,
+         "end_offset": 9,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 5
+      }
+   ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Simple japanese analysis</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "それはまだ実験段階にあります"
-}
-
-POST /test/_analyze
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Result</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "それ",
+         "start_offset": 0,
+         "end_offset": 2,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 0
+      },
+      {
+         "token": "は",
+         "start_offset": 2,
+         "end_offset": 3,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 1
+      },
+      {
+         "token": "まだ",
+         "start_offset": 3,
+         "end_offset": 5,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 2
+      },
+      {
+         "token": "実験",
+         "start_offset": 5,
+         "end_offset": 7,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 3
+      },
+      {
+         "token": "段階",
+         "start_offset": 7,
+         "end_offset": 9,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 4
+      },
+      {
+         "token": "に",
+         "start_offset": 9,
+         "end_offset": 10,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 5
+      },
+      {
+         "token": "あり",
+         "start_offset": 10,
+         "end_offset": 12,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 6
+      },
+      {
+         "token": "ます",
+         "start_offset": 12,
+         "end_offset": 14,
+         "type": "&lt;IDEOGRAPHIC&gt;",
+         "position": 7
+      }
+   ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Korean hangul analysis</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "안녕하세요 한글입니다"
-}</code></pre>
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Result</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "안녕하세요",
+         "start_offset": 0,
+         "end_offset": 5,
+         "type": "&lt;HANGUL&gt;",
+         "position": 0
+      },
+      {
+         "token": "한글입니다",
+         "start_offset": 6,
+         "end_offset": 11,
+         "type": "&lt;HANGUL&gt;",
+         "position": 1
+      }
+   ]
+}</pre>
 </div>
 </div>
 </div>
@@ -280,7 +443,7 @@ POST /test/_analyze
 <h3 id="example-for-mixed-script-tokenization">1.2. Example for mixed script tokenization</h3>
 <div class="paragraph">
 <p>In this example, the <code>icu_tokenizer</code> shows how it is capable of tokenize mixed scripts of latin,
-cryllic, and thai. Cyricclic/Thai hould be keyword-tokenized.</p>
+cryllic, and thai. Cyrillic/Thai should be keyword-tokenized.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -320,6 +483,59 @@ POST /test/_analyze
     "analyzer" : "my_analyzer",
     "text" : "Some English.  Немного русский.  ข้อความภาษาไทยเล็ก ๆ น้อย ๆ  More English."
 }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Result</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "Some",
+         "start_offset": 0,
+         "end_offset": 4,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 0
+      },
+      {
+         "token": "English",
+         "start_offset": 5,
+         "end_offset": 12,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 1
+      },
+      {
+         "token": "Немного русский.  ",
+         "start_offset": 15,
+         "end_offset": 33,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 2
+      },
+      {
+         "token": "ข้อความภาษาไทยเล็ก ๆ น้อย ๆ  ",
+         "start_offset": 33,
+         "end_offset": 62,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 3
+      },
+      {
+         "token": "More",
+         "start_offset": 62,
+         "end_offset": 66,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 4
+      },
+      {
+         "token": "English",
+         "start_offset": 67,
+         "end_offset": 74,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 5
+      }
+   ]
+}</pre>
 </div>
 </div>
 </div>
@@ -646,7 +862,7 @@ different levels of strength used in comparisons.</p>
 <table>
 <tr>
 <td class="hdlist1">
-PRIMARY
+primary
 </td>
 <td class="hdlist2">
 <p>Typically, this is used to denote differences between base characters (for example, "a" &lt; "b").
@@ -655,7 +871,7 @@ It is the strongest difference. For example, dictionaries are divided into diffe
 </tr>
 <tr>
 <td class="hdlist1">
-SECONDARY
+secondary
 </td>
 <td class="hdlist2">
 <p>Accents in the characters are considered secondary differences (for example, "as" &lt; "às" &lt; "at").
@@ -665,7 +881,7 @@ A secondary difference is ignored when there is a primary difference anywhere in
 </tr>
 <tr>
 <td class="hdlist1">
-TERTIARY
+tertiary
 </td>
 <td class="hdlist2">
 <p>Upper and lower case differences in characters are distinguished at tertiary strength
@@ -676,7 +892,7 @@ A tertiary difference is ignored when there is a primary or secondary difference
 </tr>
 <tr>
 <td class="hdlist1">
-QUATERNARY
+quaternary
 </td>
 <td class="hdlist2">
 <p>When punctuation is ignored (see Ignoring Punctuations in the user guide) at PRIMARY to TERTIARY strength,
@@ -687,7 +903,7 @@ difference. The QUATERNARY strength should only be used if ignoring punctuation 
 </tr>
 <tr>
 <td class="hdlist1">
-IDENTICAL
+identical
 </td>
 <td class="hdlist2">
 <p>When all other strengths are equal, the IDENTICAL strength is used as a tiebreaker.
@@ -1594,7 +1810,7 @@ Copyight (c) Apache Software Foundation</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-01-01 10:13:49 MEZ
+Last updated 2017-01-01 10:27:47 MEZ
 </div>
 </div>
 </body>
