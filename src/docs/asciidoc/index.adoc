@@ -73,19 +73,139 @@ PUT /test
       }
    }
 }
+----
 
+Simple chinese analysis
+----
 POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "我购买了道具和服装。"
 }
-
+----
+Result
+----
+{
+   "tokens": [
+      {
+         "token": "我",
+         "start_offset": 0,
+         "end_offset": 1,
+         "type": "<IDEOGRAPHIC>",
+         "position": 0
+      },
+      {
+         "token": "购买",
+         "start_offset": 1,
+         "end_offset": 3,
+         "type": "<IDEOGRAPHIC>",
+         "position": 1
+      },
+      {
+         "token": "了",
+         "start_offset": 3,
+         "end_offset": 4,
+         "type": "<IDEOGRAPHIC>",
+         "position": 2
+      },
+      {
+         "token": "道具",
+         "start_offset": 4,
+         "end_offset": 6,
+         "type": "<IDEOGRAPHIC>",
+         "position": 3
+      },
+      {
+         "token": "和",
+         "start_offset": 6,
+         "end_offset": 7,
+         "type": "<IDEOGRAPHIC>",
+         "position": 4
+      },
+      {
+         "token": "服装",
+         "start_offset": 7,
+         "end_offset": 9,
+         "type": "<IDEOGRAPHIC>",
+         "position": 5
+      }
+   ]
+}
+----
+Simple japanese analysis
+----
 POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "それはまだ実験段階にあります"
 }
+----
+Result
+----
+{
+   "tokens": [
+      {
+         "token": "それ",
+         "start_offset": 0,
+         "end_offset": 2,
+         "type": "<IDEOGRAPHIC>",
+         "position": 0
+      },
+      {
+         "token": "は",
+         "start_offset": 2,
+         "end_offset": 3,
+         "type": "<IDEOGRAPHIC>",
+         "position": 1
+      },
+      {
+         "token": "まだ",
+         "start_offset": 3,
+         "end_offset": 5,
+         "type": "<IDEOGRAPHIC>",
+         "position": 2
+      },
+      {
+         "token": "実験",
+         "start_offset": 5,
+         "end_offset": 7,
+         "type": "<IDEOGRAPHIC>",
+         "position": 3
+      },
+      {
+         "token": "段階",
+         "start_offset": 7,
+         "end_offset": 9,
+         "type": "<IDEOGRAPHIC>",
+         "position": 4
+      },
+      {
+         "token": "に",
+         "start_offset": 9,
+         "end_offset": 10,
+         "type": "<IDEOGRAPHIC>",
+         "position": 5
+      },
+      {
+         "token": "あり",
+         "start_offset": 10,
+         "end_offset": 12,
+         "type": "<IDEOGRAPHIC>",
+         "position": 6
+      },
+      {
+         "token": "ます",
+         "start_offset": 12,
+         "end_offset": 14,
+         "type": "<IDEOGRAPHIC>",
+         "position": 7
+      }
+   ]
+}
+----
 
+Korean hangul analysis
+----
 POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
@@ -93,10 +213,32 @@ POST /test/_analyze
 }
 ----
 
+Result
+----
+{
+   "tokens": [
+      {
+         "token": "안녕하세요",
+         "start_offset": 0,
+         "end_offset": 5,
+         "type": "<HANGUL>",
+         "position": 0
+      },
+      {
+         "token": "한글입니다",
+         "start_offset": 6,
+         "end_offset": 11,
+         "type": "<HANGUL>",
+         "position": 1
+      }
+   ]
+}
+----
+
 === Example for mixed script tokenization
 
 In this example, the `icu_tokenizer` shows how it is capable of tokenize mixed scripts of latin,
-cryllic, and thai. Cyricclic/Thai hould be keyword-tokenized.
+cryllic, and thai. Cyrillic/Thai should be keyword-tokenized.
 
 [source]
 ----
@@ -135,6 +277,56 @@ POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "Some English.  Немного русский.  ข้อความภาษาไทยเล็ก ๆ น้อย ๆ  More English."
+}
+----
+
+Result
+----
+{
+   "tokens": [
+      {
+         "token": "Some",
+         "start_offset": 0,
+         "end_offset": 4,
+         "type": "<ALPHANUM>",
+         "position": 0
+      },
+      {
+         "token": "English",
+         "start_offset": 5,
+         "end_offset": 12,
+         "type": "<ALPHANUM>",
+         "position": 1
+      },
+      {
+         "token": "Немного русский.  ",
+         "start_offset": 15,
+         "end_offset": 33,
+         "type": "<ALPHANUM>",
+         "position": 2
+      },
+      {
+         "token": "ข้อความภาษาไทยเล็ก ๆ น้อย ๆ  ",
+         "start_offset": 33,
+         "end_offset": 62,
+         "type": "<ALPHANUM>",
+         "position": 3
+      },
+      {
+         "token": "More",
+         "start_offset": 62,
+         "end_offset": 66,
+         "type": "<ALPHANUM>",
+         "position": 4
+      },
+      {
+         "token": "English",
+         "start_offset": 67,
+         "end_offset": 74,
+         "type": "<ALPHANUM>",
+         "position": 5
+      }
+   ]
 }
 ----
 
