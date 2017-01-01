@@ -84,6 +84,7 @@ test {
         showStandardStreams = false
         exceptionFormat = 'full'
     }
+    reports.html.destination = file("${projectDir}/docs/test")
 }
 
 task makePluginDescriptor(type: Copy) {
@@ -123,22 +124,26 @@ clean {
 
 asciidoctor {
     backends 'html5'
-    outputDir = file('docs')
+    outputDir = file("${projectDir}/docs")
     separateOutputDirs = false
     attributes 'source-highlighter': 'coderay',
             toc                 : '',
             idprefix            : '',
             idseparator         : '-',
-            stylesheet: "${projectDir}/src/docs/asciidoc/css/bootstrap_cerulean.min.css"
+            stylesheet: "${projectDir}/src/docs/asciidoc/css/foundation.css"
 }
 
-task javadocJar(type: Jar, dependsOn: classes) {
+javadoc {
+    options.destinationDirectory(file("${projectDir}/docs/javadoc"))
+}
+
+task javadocJar(type: Jar, dependsOn: ['jar']) {
     from javadoc
     into 'build/tmp'
     classifier 'javadoc'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
+task sourcesJar(type: Jar, dependsOn: ['jar']) {
     from sourceSets.main.allSource
     into 'build/tmp'
     classifier 'sources'

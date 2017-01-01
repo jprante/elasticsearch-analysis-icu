@@ -24,14 +24,15 @@ normalization, character folding, collation, transliteration, and locale-aware n
 
 == Text segmentation
 
-Text segmentation for Unicodes is specified in UAX#29 http://unicode.org/reports/tr29/
+Text segmentation for Unicode is specified in Unicode Standard Annex 29 (UAX#29) at
+http://unicode.org/reports/tr29/
 
 The specification determines default segmentation boundaries between certain significant text elements:
 grapheme clusters (“user-perceived characters”), words, and sentences.
 
-The default tokenization of Elasticearch follows by default UAX#29.
+The default (non-ICU) tokenization of Elasticearch follows UAX#29.
 
-The ICU tokenzation as implemented by `icu_tokenizer` adds some
+The ICU tokenzation, as implemented by `icu_tokenizer`, adds some
 features as described in http://userguide.icu-project.org/boundaryanalysis
 
 - implementation of line break detection UAX#14 http://www.unicode.org/reports/tr14/
@@ -390,15 +391,18 @@ See also https://issues.apache.org/jira/browse/LUCENE-7393
 == Normalization
 
 Normalization allows for easier sorting and searching of text. Text can appear in different forms,
-and the question is to canonicalize these forms so same texts can be recognized as being the same.
+and the question is how to canonicalize these forms so same texts can be recognized as being the same.
 
-Normalization is used to convert text to a unique, equivalent form. The ICU normalizer token filter
-can normalize equivalent strings to one particular sequence, such as normalizing composite character sequences
-into pre-composed characters.
+Texts with same appearance and meaning are known as being _canonically_ equivalent.
+The other form of equivalence is _compatibility_, where texts look possibly different,
+but mean the same. Compatible sequences may be treated the same way in sorting and indexing.
 
-=== Example for char filter normalization
+Normalization is the process to convert text to such a unique, equivalent form.
+The ICU normalizer char/token filter `icu_normalizer` can normalize equivalent strings
+to one particular sequence, such as normalizing composite character sequences into
+pre-composed characters.
 
-This example shows how `icu_normalizer` transforms "Ruß" into "russ".
+=== Example for normalization
 
 [source]
 ----
@@ -428,11 +432,73 @@ PUT /test
       }
    }
 }
+----
 
+This example shows normalization of U+0075 U+0308 to U+00fc (ü).
+
+----
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "\u0075\u0308"
+}
+----
+----
+{
+   "tokens": [
+      {
+         "token": "ü",
+         "start_offset": 0,
+         "end_offset": 1,
+         "type": "<ALPHANUM>",
+         "position": 0
+      }
+   ]
+}
+----
+
+This example shows normalization of "Ruß" into "russ".
+
+----
 POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "Ruß"
+}
+----
+----
+{
+   "tokens": [
+      {
+         "token": "russ",
+         "start_offset": 0,
+         "end_offset": 3,
+         "type": "<ALPHANUM>",
+         "position": 0
+      }
+   ]
+}
+----
+
+This example shows compatibility normalization of the ﬀ ligature character (U+FB00).
+----
+POST /test/_analyze
+{
+    "analyzer" : "my_analyzer",
+    "text" : "ﬀ"
+}
+----
+----
+{
+   "tokens": [
+      {
+         "token": "ff",
+         "start_offset": 0,
+         "end_offset": 1,
+         "type": "<ALPHANUM>",
+         "position": 0
+      }
+   ]
 }
 ----
 
@@ -1314,6 +1380,14 @@ POST /test/docs/_search
     }
 }
 ----
+
+== Javadoc
+
+The Javadoc can be found link:javadoc[here].
+
+== Gradle test report
+
+The Gradle test report can be found link:test[here].
 
 == Credits
 

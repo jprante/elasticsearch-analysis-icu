@@ -1,0 +1,5 @@
+org.xbib.elasticsearch.index.analysis.icu
+org.xbib.elasticsearch.index.analysis.icu.segmentation
+org.xbib.elasticsearch.index.analysis.icu.tokenattributes
+org.xbib.elasticsearch.index.analysis.icu.tools
+org.xbib.elasticsearch.plugin.icu
