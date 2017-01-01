@@ -8,7 +8,7 @@ import org.apache.lucene.collation.CollationKeyAnalyzer;
 /**
  * Configures a {@link KeywordTokenizer} with an {@link IcuCollationAttributeFactory}.
  * <p>
- * Converts the token into its {@link com.ibm.icu.text.CollationKey}, and
+ * Converts the token into its {@link com.ibm.icu.text.CollationKey} and
  * then encodes the CollationKey directly.
  * </p>
  * <p>

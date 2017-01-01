@@ -133,7 +133,8 @@ table.CodeRay td.code>pre{padding:0}
 </li>
 <li><a href="#character-folding">3. Character Folding</a>
 <ul class="sectlevel2">
-<li><a href="#example-for-folding">3.1. Example for folding</a></li>
+<li><a href="#implementation">3.1. Implementation</a></li>
+<li><a href="#example-for-utr-30-folding">3.2. Example for UTR#30 folding</a></li>
 </ul>
 </li>
 <li><a href="#collation">4. Collation</a>
@@ -146,7 +147,7 @@ table.CodeRay td.code>pre{padding:0}
 </ul>
 </li>
 <li><a href="#script-reordering">4.3. Script Reordering</a></li>
-<li><a href="#implementation">4.4. Implementation</a></li>
+<li><a href="#implementation-2">4.4. Implementation</a></li>
 <li><a href="#example-for-german-phone-book-collation-ordering">4.5. Example for german phone book collation ordering</a></li>
 </ul>
 </li>
@@ -678,8 +679,10 @@ solution exist. See <a href="http://www.unicode.org/reports/tr30/tr30-4.html" cl
 but case folding often occurs together with other foldings in search term folding.
 NFC or NFD are not in the primary focus of case folding operations.</p>
 </div>
+<div class="sect2">
+<h3 id="implementation">3.1. Implementation</h3>
 <div class="paragraph">
-<p>The implemented char filter / token filter applies the following foldings from the report to unicode text:</p>
+<p>The implemented char/token filter applies the following foldings from the report to unicode text:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -768,8 +771,47 @@ NFC or NFD are not in the primary focus of case folding operations.</p>
 All foldings, case folding, and normalization mappings are applied recursively
 to ensure a fully folded and normalized result.</p>
 </div>
+<div class="paragraph">
+<p>ICU uses binary encoded files prepared by the program <code>gennorm2</code> to perform character foldings.
+The input to <code>gennorm2</code> is a list of <code>txt</code> files specifying the foldings.</p>
+</div>
+<div class="paragraph">
+<p>For the Elasticsearch ICU plugin, the files <code>nfc.txt</code>, <code>nfkc.txt</code>, and <code>nfkc_cf.txt</code>
+are downloaded from</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://source.icu-project.org/repos/icu/icu/tags/release-58-1/source/data/unidata/norm2/nfc.txt" class="bare">http://source.icu-project.org/repos/icu/icu/tags/release-58-1/source/data/unidata/norm2/nfc.txt</a></p>
+</li>
+<li>
+<p><a href="http://source.icu-project.org/repos/icu/icu/tags/release-58-1/source/data/unidata/norm2/nfkc.txt" class="bare">http://source.icu-project.org/repos/icu/icu/tags/release-58-1/source/data/unidata/norm2/nfkc.txt</a></p>
+</li>
+<li>
+<p><a href="http://source.icu-project.org/repos/icu/icu/tags/release-58-1/source/data/unidata/norm2/nfkc_cf.txt" class="bare">http://source.icu-project.org/repos/icu/icu/tags/release-58-1/source/data/unidata/norm2/nfkc_cf.txt</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>There is a download tool which is not exposed  for API use,
+see <code>org.xbib.elasticsearch.index.analysis.icu.tools.UTR30DataFileGenerator</code></p>
+</div>
+<div class="paragraph">
+<p>Together with the files <code>BasicFoldings.txt</code>, <code>DiacriticFolding.txt</code>, <code>DingbatFolding.txt</code>,
+<code>HanRadicalFolding.txt</code>, and <code>NativeDigitFolding.txt</code> they are used on Fedora Linux 25 as input for the program
+<code>gennorm2</code> as provided under <a href="http://download.icu-project.org/files/icu4c/58.2/icu4c-58_2-Fedora25-x64.tgz" class="bare">http://download.icu-project.org/files/icu4c/58.2/icu4c-58_2-Fedora25-x64.tgz</a></p>
+</div>
+<div class="paragraph">
+<p>The output file is named <code>utr30.nrm</code> and included in this plugin, being configured as the default folding
+for the Elasticsearch char/token filter <code>icu_folding</code>.</p>
+</div>
+<div class="paragraph">
+<p>As to this time, there is only this one folding as specified by <code>utr30.nrm</code> configured in the plugin,
+but it is possible to add other foldings as well in future versions.</p>
+</div>
+</div>
 <div class="sect2">
-<h3 id="example-for-folding">3.1. Example for folding</h3>
+<h3 id="example-for-utr-30-folding">3.2. Example for UTR#30 folding</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code>PUT /test
@@ -797,25 +839,79 @@ to ensure a fully folded and normalized result.</p>
          }
       }
    }
-}
-
-POST /test/_analyze
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "résumé"
-}
-
-POST /test/_analyze
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "resume",
+         "start_offset": 0,
+         "end_offset": 6,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 0
+      }
+   ]
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "\u00fc"
-}
-
-POST /test/_analyze
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "u",
+         "start_offset": 0,
+         "end_offset": 1,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 0
+      }
+   ]
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "\u0075\u0308"
-}</code></pre>
+}</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{
+   "tokens": [
+      {
+         "token": "u",
+         "start_offset": 0,
+         "end_offset": 2,
+         "type": "&lt;ALPHANUM&gt;",
+         "position": 0
+      }
+   ]
+}</pre>
 </div>
 </div>
 </div>
@@ -895,10 +991,10 @@ A tertiary difference is ignored when there is a primary or secondary difference
 quaternary
 </td>
 <td class="hdlist2">
-<p>When punctuation is ignored (see Ignoring Punctuations in the user guide) at PRIMARY to TERTIARY strength,
+<p>When punctuation is ignored (see Ignoring Punctuations in the user guide) at primary to tertiary strength,
 an additional strength level can be used to distinguish words with and without punctuation
-(for example, "ab" &lt; "a-b" &lt; "aB"). This difference is ignored when there is a PRIMARY, SECONDARY or TERTIARY
-difference. The QUATERNARY strength should only be used if ignoring punctuation is required.</p>
+(for example, "ab" &lt; "a-b" &lt; "aB"). This difference is ignored when there is a primary, secondary or tertiary
+difference. The quaternary strength should only be used if ignoring punctuation is required.</p>
 </td>
 </tr>
 <tr>
@@ -906,7 +1002,7 @@ difference. The QUATERNARY strength should only be used if ignoring punctuation 
 identical
 </td>
 <td class="hdlist2">
-<p>When all other strengths are equal, the IDENTICAL strength is used as a tiebreaker.
+<p>When all other strengths are equal, the identical strength is used as a tiebreaker.
 The Unicode code point values of the NFD form of each string are compared, just in case there is no difference.
 For example, Hebrew cantellation marks are only distinguished at this strength.
 This strength should be used sparingly, as only code point value differences between two strings is an extremely
@@ -1017,9 +1113,9 @@ The <code>none</code> code must be the sole code supplied when it is used.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="implementation">4.4. Implementation</h3>
+<h3 id="implementation-2">4.4. Implementation</h3>
 <div class="paragraph">
-<p>Collation rules in Elasticsearch are implemented by the analyzer <code>icu_collate</code>.</p>
+<p>Collation rules in Elasticsearch ICU are implemented by the analyzer <code>icu_collate</code>.</p>
 </div>
 <div class="paragraph">
 <p>The analyzer can be set up with</p>
@@ -1027,7 +1123,7 @@ The <code>none</code> code must be the sole code supplied when it is used.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>a system collator associated with a Locale or a language ID</p>
+<p>a system collator associated with a locale or a language ID</p>
 </li>
 <li>
 <p>a tailored rule set (conforms to ISO 14651)</p>
@@ -1065,6 +1161,14 @@ country
 </tr>
 <tr>
 <td class="hdlist1">
+variant
+</td>
+<td class="hdlist2">
+<p>an RFC 3066 variant ID, if language and country ID is not specific enough</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
 strength
 </td>
 <td class="hdlist2">
@@ -1079,7 +1183,7 @@ decomposition
 <p><code>no</code>, or <code>canonical</code>.  If the canonical decomposition mode is set, the Collator handles
 un-normalized text properly, producing the same results as if the text were normalized in NFD.
 If canonical decomposition is turned off, it is the user&#8217;s responsibility to ensure that all text is already
-in the appropriate form before performing a comparison or before getting a CollationKey.</p>
+in the appropriate form.</p>
 </td>
 </tr>
 </table>
@@ -1094,7 +1198,8 @@ in the appropriate form before performing a comparison or before getting a Colla
 rules
 </td>
 <td class="hdlist2">
-<p>name of an UTF-8 text file containing rules supported by RuleBasedCollator (mandatory)</p>
+<p>the rules, or a list of names of UTF-8 text file containing rules
+supported by <code>com.ibm.icu.text.RuleBasedCollator</code> (mandatory)</p>
 </td>
 </tr>
 <tr>
@@ -1157,7 +1262,8 @@ numeric
 variableTop
 </td>
 <td class="hdlist2">
-<p>single character or contraction. Controls what the variable is for 'alternate'. Default is <code>Collator.ReorderCodes.DEFAULT</code> (-1)</p>
+<p>single character or contraction. Controls what the variable is for 'alternate'.
+Default is <code>Collator.ReorderCodes.DEFAULT</code> (-1)</p>
 </td>
 </tr>
 <tr>
@@ -1165,7 +1271,10 @@ variableTop
 reorder
 </td>
 <td class="hdlist2">
-<p>a sequence of strings of [ <code>currency</code>, <code>default</code>, <code>digit</code>, <code>first</code>, <code>none</code>, <code>others</code>, <code>punctuation</code>, <code>space</code>, <code>symbol</code>]
+<p>a sequence of names of script codes as specified in
+<a href="http://icu-project.org/apiref/icu4j/com/ibm/icu/lang/UScript.html" class="bare">http://icu-project.org/apiref/icu4j/com/ibm/icu/lang/UScript.html</a>
+or
+special codes [<code>currency</code>, <code>default</code>, <code>digit</code>, <code>first</code>, <code>none</code>, <code>others</code>, <code>punctuation</code>, <code>space</code>, <code>symbol</code>]
 for non-script group reordering</p>
 </td>
 </tr>
@@ -1810,7 +1919,7 @@ Copyight (c) Apache Software Foundation</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-01-01 10:27:47 MEZ
+Last updated 2017-01-01 12:46:54 MEZ
 </div>
 </div>
 </body>

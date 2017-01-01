@@ -180,7 +180,7 @@ public class IcuCollationKeyAnalyzerProvider extends AbstractIndexAnalyzerProvid
                         }
                 }
             }
-            rbc.setReorderCodes(list.stream().mapToInt(i->i).toArray());
+            rbc.setReorderCodes(list.stream().mapToInt(i -> i).toArray());
         }
         return rbc.freeze();
     }

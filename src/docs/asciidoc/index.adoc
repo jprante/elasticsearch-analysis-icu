@@ -450,7 +450,9 @@ Normalization and character folding are defined as separate and independent oper
 but case folding often occurs together with other foldings in search term folding.
 NFC or NFD are not in the primary focus of case folding operations.
 
-The implemented char filter / token filter applies the following foldings from the report to unicode text:
+=== Implementation
+
+The implemented char/token filter applies the following foldings from the report to unicode text:
 
 - Accent removal
 - Case folding
@@ -483,7 +485,30 @@ Additionally, Default Ignorables are removed, and text is normalized to NFKC.
 All foldings, case folding, and normalization mappings are applied recursively
 to ensure a fully folded and normalized result.
 
-=== Example for folding
+ICU uses binary encoded files prepared by the program `gennorm2` to perform character foldings.
+The input to `gennorm2` is a list of `txt` files specifying the foldings.
+
+For the Elasticsearch ICU plugin, the files `nfc.txt`, `nfkc.txt`, and `nfkc_cf.txt`
+are downloaded from
+
+- http://source.icu-project.org/repos/icu/icu/tags/release-58-1/source/data/unidata/norm2/nfc.txt
+- http://source.icu-project.org/repos/icu/icu/tags/release-58-1/source/data/unidata/norm2/nfkc.txt
+- http://source.icu-project.org/repos/icu/icu/tags/release-58-1/source/data/unidata/norm2/nfkc_cf.txt
+
+There is a download tool which is not exposed  for API use,
+see `org.xbib.elasticsearch.index.analysis.icu.tools.UTR30DataFileGenerator`
+
+Together with the files `BasicFoldings.txt`, `DiacriticFolding.txt`, `DingbatFolding.txt`,
+`HanRadicalFolding.txt`, and `NativeDigitFolding.txt` they are used on Fedora Linux 25 as input for the program
+`gennorm2` as provided under http://download.icu-project.org/files/icu4c/58.2/icu4c-58_2-Fedora25-x64.tgz
+
+The output file is named `utr30.nrm` and included in this plugin, being configured as the default folding
+for the Elasticsearch char/token filter `icu_folding`.
+
+As to this time, there is only this one folding as specified by `utr30.nrm` configured in the plugin,
+but it is possible to add other foldings as well in future versions.
+
+=== Example for UTR#30 folding
 
 [source]
 ----
@@ -513,23 +538,65 @@ PUT /test
       }
    }
 }
-
+----
+----
 POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "résumé"
 }
-
+----
+----
+{
+   "tokens": [
+      {
+         "token": "resume",
+         "start_offset": 0,
+         "end_offset": 6,
+         "type": "<ALPHANUM>",
+         "position": 0
+      }
+   ]
+}
+----
+----
 POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "\u00fc"
 }
-
+----
+----
+{
+   "tokens": [
+      {
+         "token": "u",
+         "start_offset": 0,
+         "end_offset": 1,
+         "type": "<ALPHANUM>",
+         "position": 0
+      }
+   ]
+}
+----
+----
 POST /test/_analyze
 {
     "analyzer" : "my_analyzer",
     "text" : "\u0075\u0308"
+}
+----
+----
+{
+   "tokens": [
+      {
+         "token": "u",
+         "start_offset": 0,
+         "end_offset": 2,
+         "type": "<ALPHANUM>",
+         "position": 0
+      }
+   ]
 }
 ----
 
@@ -569,11 +636,11 @@ tertiary:: Upper and lower case differences in characters are distinguished at t
 (for example, "ao" < "Ao" < "aò"). In addition, a variant of a letter differs from the base form on the
 tertiary strength (such as "A" and "Ⓐ"). Another example is the difference between large and small Kana.
 A tertiary difference is ignored when there is a primary or secondary difference anywhere in the strings.
-quaternary:: When punctuation is ignored (see Ignoring Punctuations in the user guide) at PRIMARY to TERTIARY strength,
+quaternary:: When punctuation is ignored (see Ignoring Punctuations in the user guide) at primary to tertiary strength,
 an additional strength level can be used to distinguish words with and without punctuation
-(for example, "ab" < "a-b" < "aB"). This difference is ignored when there is a PRIMARY, SECONDARY or TERTIARY
-difference. The QUATERNARY strength should only be used if ignoring punctuation is required.
-identical:: When all other strengths are equal, the IDENTICAL strength is used as a tiebreaker.
+(for example, "ab" < "a-b" < "aB"). This difference is ignored when there is a primary, secondary or tertiary
+difference. The quaternary strength should only be used if ignoring punctuation is required.
+identical:: When all other strengths are equal, the identical strength is used as a tiebreaker.
 The Unicode code point values of the NFD form of each string are compared, just in case there is no difference.
 For example, Hebrew cantellation marks are only distinguished at this strength.
 This strength should be used sparingly, as only code point value differences between two strings is an extremely
@@ -653,11 +720,11 @@ The `none` code must be the sole code supplied when it is used.
 
 === Implementation
 
-Collation rules in Elasticsearch are implemented by the analyzer `icu_collate`.
+Collation rules in Elasticsearch ICU are implemented by the analyzer `icu_collate`.
 
 The analyzer can be set up with
 
-- a system collator associated with a Locale or a language ID
+- a system collator associated with a locale or a language ID
 - a tailored rule set (conforms to ISO 14651)
 
 The following options are available for creating a system collator:
@@ -666,16 +733,18 @@ The following options are available for creating a system collator:
 locale:: a RFC 3066 locale ID
 language:: an RFC 3066  language ID, if locale ID is not given
 country:: an RFC 3066 country ID, if language ID is not specific enough
+variant:: an RFC 3066 variant ID, if language and country ID is not specific enough
 strength:: `primary`, `secondary`, `tertiary`, `quaternary`, or `identical`
 decomposition:: `no`, or `canonical`.  If the canonical decomposition mode is set, the Collator handles
 un-normalized text properly, producing the same results as if the text were normalized in NFD.
 If canonical decomposition is turned off, it is the user's responsibility to ensure that all text is already
-in the appropriate form before performing a comparison or before getting a CollationKey.
+in the appropriate form.
 
 The following options are available when creating a rule set based collator:
 
 [horizontal]
-rules:: name of an UTF-8 text file containing rules supported by RuleBasedCollator (mandatory)
+rules:: the rules, or a list of names of UTF-8 text file containing rules
+supported by `com.ibm.icu.text.RuleBasedCollator` (mandatory)
 strength:: `primary`, `secondary`, `tertiary`, `quaternary`, or `identical` (optional)
 decomposition:: `no` or `canonical` (optional)
 
@@ -686,8 +755,12 @@ alternate:: `shifted` or `non-ignorable`. Can be used to ignore punctuation/whit
 caseLevel:: `true` or `false`. Useful with primary strength to ignore accents but not case.
 caseFirst:: `lower` or `upper`. Useful to control which is sorted first when case is not ignored.
 numeric:: `true` or `false`. Digits are sorted according to numeric value, e.g. `foobar-9` sorts before `foobar-10`
-variableTop:: single character or contraction. Controls what the variable is for 'alternate'. Default is `Collator.ReorderCodes.DEFAULT` (-1)
-reorder:: a sequence of strings of [ `currency`, `default`, `digit`, `first`, `none`, `others`, `punctuation`, `space`, `symbol`]
+variableTop:: single character or contraction. Controls what the variable is for 'alternate'.
+Default is `Collator.ReorderCodes.DEFAULT` (-1)
+reorder:: a sequence of names of script codes as specified in
+http://icu-project.org/apiref/icu4j/com/ibm/icu/lang/UScript.html
+or
+special codes [`currency`, `default`, `digit`, `first`, `none`, `others`, `punctuation`, `space`, `symbol`]
 for non-script group reordering
 
 
