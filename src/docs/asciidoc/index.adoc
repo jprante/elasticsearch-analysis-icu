@@ -1060,5 +1060,11 @@ Copyright (c) 2000 - 2009 IBM and Others.
 http://icu-project.org/apiref/icu4j/
 Copyright (c) 2016 IBM Corporation and others.
 
-Many examples are take from Lucene ICU
+Many examples are taken from
 
+- Elasticsearch ICU plugin
+https://www.elastic.co/guide/en/elasticsearch/plugins/current/analysis-icu.html
+Copyright (c) 2016 Elastic
+
+- Lucene ICU analysis module https://github.com/apache/lucene-solr/tree/master/lucene/analysis/icu
+Copyight (c) Apache Software Foundation
