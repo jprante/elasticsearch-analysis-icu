@@ -1391,7 +1391,7 @@ The Gradle test report can be found link:test[here].
 
 == Credits
 
-Many parts of this documenation are taken from
+Many parts of this documentation are taken from
 
 http://userguide.icu-project.org/
 Copyright (c) 2000 - 2009 IBM and Others.

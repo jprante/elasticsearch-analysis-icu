@@ -136,12 +136,12 @@ public class UTR30DataFileGenerator {
         connection.connect();
         return connection;
     }
+
     private static void expandRulesInUTR30DataFiles() throws IOException {
         FileFilter filter = pathname -> {
             String name = pathname.getName();
             return pathname.isFile() && name.matches(".*\\.(?s:txt)")
-                    && !name.equals(NFC_TXT) && !name.equals(NFKC_TXT)
-                    && !name.equals(NFKC_CF_TXT);
+                    && !name.equals(NFC_TXT) && !name.equals(NFKC_TXT) && !name.equals(NFKC_CF_TXT);
         };
         File currentDir = new File(".");
         for (File file : currentDir.listFiles(filter)) {
@@ -198,8 +198,6 @@ public class UTR30DataFileGenerator {
             }
         }
     }
-
-
 
     private static void expandSingleRule(StringBuilder builder, String leftHandSide, String rightHandSide) {
         UnicodeSet set = new UnicodeSet(leftHandSide, UnicodeSet.IGNORE_SPACE);

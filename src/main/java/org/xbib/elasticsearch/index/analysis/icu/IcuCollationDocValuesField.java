@@ -21,7 +21,7 @@ public final class IcuCollationDocValuesField extends Field {
     private final RawCollationKey key = new RawCollationKey();
 
     /**
-     * Create a new ICUCollationDocValuesField.
+     * Create a new ICUCollationDocValuesField instance.
      * Do not create a new one for each document, instead
      * just make one and reuse it during your indexing process, setting
      * the value via {@link #setStringValue(String)}.
@@ -35,7 +35,7 @@ public final class IcuCollationDocValuesField extends Field {
         try {
             this.collator = (Collator) collator.clone();
         } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
+            throw new UnsupportedOperationException(e.getMessage(), e);
         }
         fieldsData = bytes;
     }
