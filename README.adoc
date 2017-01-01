@@ -1,4 +1,4 @@
-= ICY analysis for Elasticsearch
+= ICU analysis for Elasticsearch
 
 image:https://api.travis-ci.org/jprante/elasticsearch-analysis-icu.svg[title="Build status", link="https://travis-ci.org/jprante/elasticsearch-analysis-icu/"]
 image:https://sonarqube.com/api/badges/gate?key=org.xbib.elasticsearch.plugin:elasticsearch-analysis-icu[title="Coverage", link="https://sonarqube.com/dashboard/index?id=org.xbib.elasticsearch.plugin%3Aelasticsearch-analysis-icu"]
