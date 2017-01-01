@@ -770,21 +770,34 @@ This may be used in searching.</p>
 <div class="sect2">
 <h3 id="script-reordering">4.3. Script Reordering</h3>
 <div class="paragraph">
+<p>For ICU script codes, see <a href="http://icu-project.org/apiref/icu4j/com/ibm/icu/lang/UScript.html" class="bare">http://icu-project.org/apiref/icu4j/com/ibm/icu/lang/UScript.html</a></p>
+</div>
+<div class="paragraph">
 <p>Script reordering allows scripts and some other groups of characters to be moved relative to each other.
 This reordering is done on top of the DUCET/CLDR standard collation order.
 Reordering can specify groups to be placed at the start and/or the end of the collation order.</p>
 </div>
 <div class="paragraph">
 <p>By default, reordering codes specified for the start of the order are placed in the order given after
-several special non-script blocks. These special groups of characters are space, punctuation, symbol,
-currency, and digit. Script groups can be intermingled with these special non-script groups
+several special non-script blocks. These special groups of characters are <code>space</code>, <code>punctuation</code>, <code>symbol</code>,
+<code>currency</code>, and <code>digit</code>. Script groups can be intermingled with these special non-script groups
 if those special groups are explicitly specified in the reordering.</p>
 </div>
 <div class="paragraph">
-<p>The special code others stands for any script that is not explicitly mentioned in the list.
-Anything that is after others will go at the very end of the list in the order given.
-For example, [Grek, others, Latn] will result in an ordering that puts all scripts
-other than Greek and Latin between them.</p>
+<p>The special code <code>others</code> stands for any script that is not explicitly mentioned in the list.
+Anything that is after others will go at the very end of the list in the order given.</p>
+</div>
+<div class="paragraph">
+<p>The special reorder code <code>default</code> will reset the reordering for this collator to the default
+for this collator. The default reordering may be the DUCET/CLDR order or may be a reordering
+that was specified when this collator was created from resource data or from rules.
+The <code>default</code> code must be the sole code supplied when it is used.
+If not, then an <code>IllegalArgumentException</code> will be thrown.</p>
+</div>
+<div class="paragraph">
+<p>The special reorder code <code>none</code> will remove any reordering for this collator.
+The result of setting no reordering will be to have the DUCET/CLDR ordering used.
+The <code>none</code> code must be the sole code supplied when it is used.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1561,14 +1574,27 @@ Copyright (c) 2000 - 2009 IBM and Others.</p>
 Copyright (c) 2016 IBM Corporation and others.</p>
 </div>
 <div class="paragraph">
-<p>Many examples are take from Lucene ICU</p>
+<p>Many examples are taken from</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Elasticsearch ICU plugin
+<a href="https://www.elastic.co/guide/en/elasticsearch/plugins/current/analysis-icu.html" class="bare">https://www.elastic.co/guide/en/elasticsearch/plugins/current/analysis-icu.html</a>
+Copyright (c) 2016 Elastic</p>
+</li>
+<li>
+<p>Lucene ICU analysis module <a href="https://github.com/apache/lucene-solr/tree/master/lucene/analysis/icu" class="bare">https://github.com/apache/lucene-solr/tree/master/lucene/analysis/icu</a>
+Copyight (c) Apache Software Foundation</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-12-29 16:38:46 MEZ
+Last updated 2017-01-01 10:13:49 MEZ
 </div>
 </div>
 </body>
