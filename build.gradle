@@ -22,7 +22,7 @@ ext {
     pluginClassname  = 'org.xbib.elasticsearch.plugin.icu.IcuPlugin'
     pluginDescription = 'International Components for Unicode plugins for Elasticsearch'
     user = 'jprante'
-    name = 'elasticsearch-plugin-icu'
+    name = 'elasticsearch-analysis-icu'
     scmUrl = 'https://github.com/' + user + '/' + name
     scmConnection = 'scm:git:git://github.com/' + user + '/' + name + '.git'
     scmDeveloperConnection = 'scm:git:git://github.com/' + user + '/' + name + '.git'
